@@ -66,12 +66,10 @@ export default {
     };
   },
   created() {
-    // Sahifa yuklanganda login holatini tekshirish
     this.isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
     if (this.isLoggedIn) {
       this.$router.push("/");
     } else {
-      // Saqlangan login va parolni o'qish
       const savedLogin = localStorage.getItem("savedLogin");
       const savedPassword = localStorage.getItem("savedPassword");
       if (savedLogin) {
@@ -145,15 +143,6 @@ export default {
   display: flex;
   flex-direction: column;
 }
-input {
-  width: 400px;
-  height: 40px;
-  border-radius: 8px;
-  border: none;
-  text-indent: 20px;
-  font-size: 20px;
-  outline: none;
-}
 .login,
 .password {
   display: flex;
@@ -164,6 +153,10 @@ input {
   height: 50px;
   border-radius: 10px;
   border: 1px solid gray;
+  justify-content: space-between;
+}
+input{
+  width: 400px;
 }
 .login:hover,
 .password:hover {

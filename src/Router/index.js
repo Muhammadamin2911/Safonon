@@ -26,8 +26,8 @@ router.beforeEach((to, from, next) => {
 
   if (to.meta.requiresAuth && !isLoggedIn) {
     next('/login');
-  } else {
-    next();
+  } else {  
+    next("/");
   }
 });
 
