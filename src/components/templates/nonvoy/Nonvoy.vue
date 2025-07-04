@@ -23,7 +23,7 @@
         <b>{{ nonvoy.phone || "N/A" }}</b>
         <b>{{ nonvoy.salary || "N/A" }}</b>
         <b class="btns">
-          <button>👁️</button>
+          <button>👁</button>
           <button @click="openEditModal(nonvoy._id)">✏️</button>
           <button @click="deleteNonvoy(nonvoy._id)">🗑️</button>
         </b>
