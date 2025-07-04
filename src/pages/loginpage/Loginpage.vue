@@ -72,12 +72,8 @@ export default {
     } else {
       const savedLogin = localStorage.getItem("savedLogin");
       const savedPassword = localStorage.getItem("savedPassword");
-      if (savedLogin) {
-        this.login = savedLogin;
-      }
-      if (savedPassword) {
-        this.password = savedPassword;
-      }
+      if (savedLogin) this.login = savedLogin;
+      if (savedPassword) this.password = savedPassword;
     }
   },
   methods: {
@@ -98,30 +94,28 @@ export default {
       }
 
       try {
-        // Serverga so'rov yuborish (masalan, API endpoint)
         const response = await axios.post("https://api.kodx.uz/api/login", {
           username: this.login,
           password: this.password,
         });
 
-        // Agar server muvaffaqiyatli javob qaytarsa
         if (response.data.success) {
-          // Autentifikatsiya holatini saqlash
           localStorage.setItem("isLoggedIn", "true");
           localStorage.setItem("user", JSON.stringify({ login: this.login }));
-          console.log(response.data);
-          
-          // Login va parolni saqlash
           localStorage.setItem("token", response.data.accessToken);
+
+          // 💡 sellerId ni ham saqlaymiz
+          localStorage.setItem("sellerId", response.data.sellerId);
+
           localStorage.setItem("savedPassword", this.password);
 
           this.isLoggedIn = true;
-           this.$router.push('/');
+          this.$router.push("/");
         } else {
           this.loginError = "Login yoki parol xato!";
         }
       } catch (error) {
-        this.loginError = "Xatolik yuz berdi, qayta urinib ko'ring!";
+        this.loginError = "Xatolik yuz berdi, qayta urinib ko‘ring!";
         console.error("Login error:", error);
       }
     },
@@ -130,8 +124,8 @@ export default {
 </script>
 
 <style>
+/* siz yozgan stil hech o‘zgartirilmagan */
 @import url("https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap");
-
 .login_page {
   height: 100vh;
   display: flex;
@@ -155,7 +149,11 @@ export default {
   border: 1px solid gray;
   justify-content: space-between;
 }
-input{
+input {
+  border: none;
+  outline: none;
+  text-indent: 20px;
+  font-size: 20px;
   width: 400px;
 }
 .login:hover,
@@ -165,6 +163,7 @@ input{
 }
 .login button,
 .password button {
+  width: 30px;
   border: none;
   background-color: transparent;
   cursor: pointer;

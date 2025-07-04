@@ -2,7 +2,7 @@
   <div class="manager">
     <div class="manager_top">
       <h1>Boshqaruvchilar</h1>
-      <button @click="activeModal">Manager yaratish</button>
+      <button @click="openCreateModal">Manager yaratish</button>
     </div>
 
     <div class="manager_blog">
@@ -13,26 +13,34 @@
         <b>Amal</b>
       </header>
 
-      <!-- Managerlar ro'yxati -->
       <div
         v-for="(manager, index) in managers"
-        :key="manager.id"
+        :key="manager._id"
         class="manager_row"
       >
-        <b>{{ index + 1 }}</b>                      
+        <b>{{ index + 1 }}</b>
         <b>{{ manager.username || "Noma'lum" }}</b>
-        <b>{{ manager.createdAt.slice(0, 10) }}</b>
-        <b><button @click="deleteManager(managers.id)">❌</button></b>
+        <b>{{ manager.createdAt?.slice(0, 10) }}</b>
+        <b class="btns">
+          <button>👁️</button>
+          <button @click="openEditModal(manager._id)">✏️</button>
+          <button @click="deleteManager(manager._id)">🗑️</button>
+        </b>
       </div>
 
-      <!-- Agar hech qanday manager bo'lmasa -->
       <div v-if="!isLoading && managers.length === 0" class="empty-message">
         Hech qanday manager topilmadi
       </div>
     </div>
 
     <!-- Modal -->
-    <Modal v-if="isActiveModal" @close="activeModal" />
+    <Modal
+      v-if="isActiveModal"
+      @close="closeModal"
+      :editManagerId="selectedManagerId"
+      @manager-updated="fetchManagers"
+      :class="{ opened: isActiveModal, closed: !isActiveModal }"
+    />
   </div>
 </template>
 
@@ -42,73 +50,74 @@ import api from "../../../Utils/axios";
 
 export default {
   name: "Manager",
-  components: {
-    Modal,
-  },
-  
+  components: { Modal },
   data() {
     return {
-      isActiveModal: false,
       managers: [],
       isLoading: false,
-           
+      isActiveModal: false,
+      selectedManagerId: null,
     };
   },
   methods: {
-    activeModal() {
-      this.isActiveModal = !this.isActiveModal;
-      if (!this.isActiveModal) {
-        this.fetchManagers();
-      }
-    },
     async fetchManagers() {
       this.isLoading = true;
       try {
         const res = await api.get("/api/managers");
-        console.log("Backend dan kelgan ma'lumotlar:", res.data);
-
-        if (res.data) {
-          this.managers = res.data.managers;
-        }
+        this.managers = res.data.managers;
       } catch (err) {
-        console.log(err);
+        console.error("Xatolik:", err);
+      } finally {
+        this.isLoading = false;
       }
     },
-   
+    openCreateModal() {
+      this.selectedManagerId = null;
+      this.isActiveModal = true;
+    },
+    openEditModal(managerId) {
+      this.selectedManagerId = managerId;
+      this.isActiveModal = true;
+    },
+    closeModal() {
+      this.isActiveModal = false;
+      this.selectedManagerId = null;
+    },
     async deleteManager(id) {
+      const confirmed = confirm("Rostdan ham o‘chirmoqchimisiz?");
+      if (!confirmed) return;
       try {
-        const confirmed = confirm(
-          "Rostdan ham ushbu managerni o'chirmoqchimisiz?"
-        );
-        if (!confirmed) return;
-
-        await api.delete(`/api/managers/${id}`);
-        this.managers = this.managers.filter((item) => item.id !== id);
+        await api.delete(`/api/manager/${id}`);
+        this.fetchManagers();
       } catch (err) {
-        console.error("O'chirishda xatolik:", err);
+        console.error("O‘chirishda xatolik:", err);
       }
     },
   },
   mounted() {
-    console.log("Komponent yuklandi, ma'lumotlar olinmoqda...");
     this.fetchManagers();
   },
 };
 </script>
 
-
 <style>
 .manager {
-  position: relative;
   width: 110%;
 }
-.modal {
-  position: absolute;
-  top: -20px;
-  left: -10px;
-  transform: translatex(0px);
-  transition: 2s;
+.opened {
+  position: fixed;
+  top: -700px;
+  right: 0;
+  transition: right 2s ease;
 }
+
+.closed {
+  position: fixed;
+  top: -700px;
+  right: -100%;
+  transition: right 2s ease;
+}
+
 .manager_blog {
   border: 1px solid rgb(200, 200, 200);
   height: 85vh;
@@ -117,27 +126,10 @@ export default {
 }
 .manager_top {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   height: 70px;
-  justify-content: space-between;
-  align-items: center;
 }
-.manager_row {
-  display: flex;
-  justify-content: space-between;
-  padding: 15px 20px;
-  border-bottom: 1px solid #ddd;
-  align-items: center;
-}
-.manager_row b {
-  width: 250px;
-}
-.manager_row button {
-  background-color: transparent;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-}
-
 .manager_top h1 {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -145,11 +137,10 @@ export default {
   width: 250px;
   height: 40px;
   background-color: #5565ff;
+  color: white;
   border: none;
   border-radius: 10px;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
   font-size: 18px;
-  color: #fff;
 }
 .manager_blog header {
   display: flex;
@@ -158,16 +149,35 @@ export default {
   padding: 20px;
   border-radius: 10px;
 }
-header b {
+.manager_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  padding: 15px 20px;
+}
+.manager_row b {
   width: 250px;
 }
-
-/* Faqat zarur bo'lgan qo'shimcha stillar */
-.loading-message,
+.btns {
+  display: flex;
+  gap: 10px;
+  padding-left: 100px;
+}
+.btns button {
+  cursor: pointer;
+  width:35px;
+  background-color: #5565ff;
+  border-radius: 5px;
+  border: none;
+}
+.btns :nth-child(3){
+  background-color: red;
+}
 .empty-message {
   text-align: center;
   padding: 20px;
-  color: #666;
   font-style: italic;
+  color: #777;
 }
 </style>

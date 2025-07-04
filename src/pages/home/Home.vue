@@ -16,10 +16,11 @@
         <li @click="clickSozlamalar()"><Icons :name="'setting'" /> Sozlamalar
         </li>
       </ul>
-      <div class="admin">
-        <p>Admin</p>
-        <Icons :name="'logout'" />
-      </div>
+    <div class="logout" @click="logout">
+  <p>Admin</p>
+  <Icons :name="'logout'" />
+</div>
+
       <button @click="toggleSidebar" class="on_bar">
         <Icons :name="'arrow_left'" />
       </button>
@@ -47,6 +48,7 @@ import Chiqim from "../../components/templates/chiqimlar/Chiqimlar.vue";
 import Ombor from "../../components/templates/omborxona/Omborxon.vue";
 import NonTuri from "../../components/templates/nonTurlari/NonTurlari.vue";
 import Sozlamalar from "../../components/templates/sozlamalar/Sozlamalar.vue";
+
 export default {
   name: "Home",
   components: {
@@ -91,7 +93,7 @@ export default {
       this.Chiqim = false;
       this.Ombor = false;
       this.NonTuri = false;
-      this.Sozlamalar=false;
+      this.Sozlamalar = false;
     },
     clickManager() {
       this.Manager = true;
@@ -102,7 +104,7 @@ export default {
       this.Chiqim = false;
       this.Ombor = false;
       this.NonTuri = false;
-      this.Sozlamalar=false;
+      this.Sozlamalar = false;
     },
     clickNonvoy() {
       this.Nonvoy = true;
@@ -113,7 +115,7 @@ export default {
       this.Chiqim = false;
       this.Ombor = false;
       this.NonTuri = false;
-      this.Sozlamalar=false;
+      this.Sozlamalar = false;
     },
     clickYetkazuvchi() {
       this.Yetkazuvchi = true;
@@ -124,7 +126,7 @@ export default {
       this.Chiqim = false;
       this.Ombor = false;
       this.NonTuri = false;
-      this.Sozlamalar=false;
+      this.Sozlamalar = false;
     },
     clickDokon() {
       this.Dokon = true;
@@ -135,7 +137,7 @@ export default {
       this.Chiqim = false;
       this.Ombor = false;
       this.NonTuri = false;
-      this.Sozlamalar=false;
+      this.Sozlamalar = false;
     },
     clickChiqim() {
       this.Chiqim = true;
@@ -146,7 +148,7 @@ export default {
       this.Manager = false;
       this.Ombor = false;
       this.NonTuri = false;
-      this.Sozlamalar=false;
+      this.Sozlamalar = false;
     },
     clickOmbor() {
       this.Ombor = true;
@@ -157,7 +159,7 @@ export default {
       this.Dashboard = false;
       this.Manager = false;
       this.NonTuri = false;
-      this.Sozlamalar=false;
+      this.Sozlamalar = false;
     },
     clickNonTuri() {
       this.NonTuri = true;
@@ -168,10 +170,10 @@ export default {
       this.Nonvoy = false;
       this.Dashboard = false;
       this.Manager = false;
-      this.Sozlamalar=false;
+      this.Sozlamalar = false;
     },
     clickSozlamalar() {
-      this.Sozlamalar=true;
+      this.Sozlamalar = true;
       this.NonTuri = false;
       this.Ombor = false;
       this.Chiqim = false;
@@ -181,9 +183,14 @@ export default {
       this.Dashboard = false;
       this.Manager = false;
     },
+    logout() {
+      localStorage.removeItem("token"); 
+      this.$router.push("/login");
+    },
   },
 };
 </script>
+
 
 <style>
 * {
@@ -287,7 +294,7 @@ ul li:active {
   background-color: rgb(53, 145, 244);
   transition: 0.3s;
 }
-.admin {
+.logout {
   width: 255px;
   height: 40px;
   position: absolute;
@@ -301,7 +308,7 @@ ul li:active {
   border-radius: 10px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
-.admin p {
+.logout p {
   width: 200px;
   text-align: center;
   color: #000;

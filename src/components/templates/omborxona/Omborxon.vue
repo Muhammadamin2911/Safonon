@@ -1,151 +1,181 @@
 <template>
-  <div class="omborxona">
-    <div class="omborxona_top">
+  <div class="ombor">
+    <div class="ombor_top">
       <h1>Omborxona</h1>
-      <button>Mahsulot yaratish</button>
+      <button @click="openCreateModal">Maxsulot qo‘shish</button>
     </div>
-    <div class="omborxona_blog">
-      <header class="ombor_header">
-        <b>№</b>
+
+    <div class="ombor_blog">
+      <header>
+        <b style="width: 20px">№</b>
         <b>Nomi</b>
-        <b>Narxi</b>
         <b>Soni</b>
-        <b>Jami summasi</b>
-        <b>Holati</b>
+        <b>Narxi</b>
+        <b>Tavsif</b>
+        <b>Kim qo‘shgan</b>
         <b></b>
       </header>
 
-        <div
-        v-for="(manager, index) in managers"
-        :key="manager.id"
-        class="manager_row"
+      <div
+        v-for="(item, index) in mahsulotlar"
+        :key="item._id"
+        class="ombor_row"
       >
         <b>{{ index + 1 }}</b>
-        <b>{{ manager.username || manager.name || 'Noma\'lum' }}</b>
-        <b>{{ formatDate(manager.createdAt) }}</b>
-        <b><button @click="deleteManager(manager.id)">❌</button></b>
+        <b>{{ item.nomi }}</b>
+        <b>{{ item.soni }}</b>
+        <b>{{ item.narxi }}</b>
+        <b>{{ item.tavsif }}</b>
+        <b>{{ item.kim }}</b>
+        <b class="btns">
+          <button @click="openViewModal(item)">👁️</button>
+          <button @click="openEditModal(item)">✏️</button>
+          <button @click="deleteItem(item)">❌</button>
+        </b>
       </div>
 
-      <!-- Agar hech qanday manager bo'lmasa -->
-      <div v-if="!isLoading && managers.length === 0" class="empty-message">
-        Hech qanday manager topilmadi
+      <div
+        v-if="!isLoading && mahsulotlar.length === 0"
+        class="empty-message"
+      >
+        Omborda hech qanday maxsulot yo‘q
       </div>
     </div>
 
-
-
-    </div>
-  
+    <Modal
+      v-if="isActiveModal"
+      @close="closeModal"
+      :editItem="selectedItem"
+      @item-updated="fetchMahsulotlar"
+      :class="{ opened: isActiveModal }"
+    />
+  </div>
 </template>
+
 <script>
-  import api from "../../../Utils/axios";
+import Modal from "./Modal.vue";
+import api from "../../../Utils/axios";
+
 export default {
-  name: "Omborxona",
-
-
+  name: "Ombor",
+  components: { Modal },
   data() {
     return {
+      mahsulotlar: [],
       isActiveModal: false,
-      managers: [],
+      selectedItem: null,
       isLoading: false,
     };
   },
+  mounted() {
+    this.fetchMahsulotlar();
+  },
   methods: {
-    activeModal() {
-      this.isActiveModal = !this.isActiveModal;
-      if (!this.isActiveModal) {
-        this.fetchManagers();
-      }
+    openCreateModal() {
+      this.selectedItem = null;
+      this.isActiveModal = true;
     },
-    async fetchManagers() {
+    openEditModal(item) {
+      this.selectedItem = { ...item, readonly: false };
+      this.isActiveModal = true;
+    },
+    openViewModal(item) {
+      this.selectedItem = { ...item, readonly: true };
+      this.isActiveModal = true;
+    },
+    closeModal() {
+      this.isActiveModal = false;
+      this.selectedItem = null;
+    },
+    async fetchMahsulotlar() {
       this.isLoading = true;
       try {
         const res = await api.get("/api/manager's/warehouse");
-        console.log("Backend dan kelgan ma'lumotlar:", res.data);
-
-        if(res.data){
-            this.managers=res.data
-        }
-        
-      }
-      catch(err){
-        console.log(err);
-        
-      }
-    },
-    formatDate(date) {
-      if (!date) return "Noma'lum";
-      try {
-        const d = new Date(date);
-        return d.toLocaleDateString("uz-UZ");
+        this.mahsulotlar = Array.isArray(res.data.mahsulotlar)
+          ? res.data.mahsulotlar
+          : [];
       } catch (err) {
-        console.error("Sanani formatlashda xatolik:", err);
-        return "Noma'lum";
+        console.error("Ombor ma'lumotlarini olishda xato:", err);
+        alert("Ma'lumotlarni olishda xato yuz berdi");
+      } finally {
+        this.isLoading = false;
       }
     },
-    async deleteManager(id) {
-      try {
-        const confirmed = confirm("Rostdan ham ushbu managerni o'chirmoqchimisiz?");
-        if (!confirmed) return;
+    async deleteItem(item) {
+      const confirmed = confirm(`${item.nomi} maxsulotini o‘chirmoqchimisiz?`);
+      if (!confirmed) return;
 
-        await api.delete(`/api/managers/${id}`);
-        this.managers = this.managers.filter(m => m.id !== id);
+      try {
+        await api.delete(`/api/manager's/warehouse${item._id}`);
+        alert("O‘chirildi");
+        this.fetchMahsulotlar();
       } catch (err) {
-        console.error("O'chirishda xatolik:", err);
+        console.error("O‘chirish xatosi:", err);
+        alert(
+          `O‘chirishda xato: ${err.response?.data?.message || err.message}`
+        );
       }
     },
-  },
-  mounted() {
-    console.log("Komponent yuklandi, ma'lumotlar olinmoqda...");
-    this.fetchManagers();
   },
 };
 </script>
 
-
-
 <style>
- .omborxona{
+.ombor {
   width: 100%;
 }
-.omborxona_blog{
-  width: 100%;
-  border: 1px solid rgb(200, 200, 200);
-  height: 85vh;
-  border-radius: 20px;
-  padding: 20px;
-}
-.omborxona_top{
+.ombor_top {
   display: flex;
-  height: 70px;
   justify-content: space-between;
   align-items: center;
-  
+  height: 70px;
 }
-.omborxona_top h1{
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+.ombor_top h1 {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
-.omborxona_top button{
+.ombor_top button {
   width: 250px;
   height: 40px;
-    background-color: #5565ff;
-    border: none;
-    border-radius: 10px;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
-font-size: 18px;
-color: #fff;
+  background-color: #5565ff;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
 }
-.omborxona_blog header{
-  width: 100%;
+.ombor_blog {
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 20px;
+  height: 85vh;
+}
+.ombor_blog header {
   display: flex;
   justify-content: space-between;
   background-color: #ddd;
-  padding: 20px;
   border-radius: 10px;
-
+  padding: 15px;
 }
-.ombor_header b{
-  width: 155px;
+.ombor_blog header b {
+  width: 130px;
+  text-align: left;
 }
-
+.ombor_row {
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+}
+.ombor_row b {
+  width: 130px;
+  display: flex;
+  align-items: center;
+}
+b.btns button {
+  margin-right: 5px;
+}
+.empty-message {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+}
 </style>

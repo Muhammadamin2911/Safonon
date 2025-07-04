@@ -5,8 +5,9 @@ import Loginpage from '../pages/loginpage/Loginpage.vue';
 const routes = [
   {
     path: '/',
-    name:"HomePage",
-    component:Home
+    name: "HomePage",
+    component: Home,
+    meta: { requiresAuth: true }
   },
   {
     path: '/login',
@@ -20,14 +21,15 @@ const router = createRouter({
   routes,
 });
 
-// Route guard
 router.beforeEach((to, from, next) => {
   const isLoggedIn = localStorage.getItem("token");
 
   if (to.meta.requiresAuth && !isLoggedIn) {
     next('/login');
-  } else {  
-    next("/");
+  } else if (to.path === '/login' && isLoggedIn) {
+    next('/');
+  } else {
+    next();
   }
 });
 
